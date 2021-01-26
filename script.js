@@ -1,5 +1,3 @@
-const btns = document.querySelectorAll('button');
-
 const win = document.querySelector('.window');
 const numbers = document.querySelectorAll('[data-num]');
 const operators = document.querySelectorAll('[data-operator]');
@@ -35,21 +33,43 @@ let calc = function() {
     }
 
     reverse.addEventListener('click', ()=> {
-        if (win.textContent != '0' && equation != '') {
 
+        // Нужно исправить косяк если последний символ оператор
+        if(equation.slice(-1).match(/[+*%/-]/)) {
+    
+            equation = equation.slice(0,-1); // обрезаем последний символ
+            console.log('cheeck', showStats());
+            x = 3;
+        }
+
+        if (win.textContent != '0' && equation != '') {
+            if (x == 2) {
+                lastNum = equation;
+                x = 1;
+            }
             if (!lastNum.match(/[-]/g)) {
-                lastNum ="" + (-lastNum);
+                let y = lastNum.length; //определяем длинну последнего номера
+                lastNum ="" + -lastNum; // последний номер получает минус
+                
+                equation = equation.slice(0,-y); // обрезаем equation 
+                equation +=lastNum; //добавляем к обрезаной формуле lastNum со знаком минусов
                 win.textContent = lastNum;
             } else {
+                let y = lastNum.length; //определяем длинну последнего номера со знаком минус
+                equation = equation.slice(0,-y); // обрезаем equation 
                 lastNum = lastNum.slice(1);
+                equation +=lastNum;
                 win.textContent = lastNum;
+            }
+            if (x == 3) {
+                equation += lastOperator;
+                x=1;
             }
         } else {
             return;
         }
         showStats();
     });
-
 
     percent.addEventListener('click', ()=> {
         if(!equation || equation.match(/[+*%/-]/)) {
@@ -81,39 +101,38 @@ let calc = function() {
         }
     });
 
-
-
-
-
     numbers.forEach(num => {
         num.addEventListener('click', (e)=> {
             x = 1;
-            //allows us to use the result from the previous equation as a basis for new equation
-            if (outcome) {
+
+            //используем результат первого решения как аргумент для второго
+            if (outcome || outcome == 0) {
+                equation="";
                 lastNum = '';
                 outcome = 0; // перезаписываем рез на ноль
                 win.textContent = ''; // убираем раз с экрана
-                if(!equation.slice(-1).match(/[+*%/-]/)) {
+                if(!equation.slice(-1).match(/[+*%/-]/) || equation == 0) {
                     equation = '';
                 }
             }
 
 
-
+            //игнорируем нажатие на ноль если у нас ноль
             if (win.textContent == '0' && equation == 0 && e.target.value == 0) {
                 return;
             }
 
-
-            //if the last symbol is an operator+comma!!! or starting position, we replace the value in the window
+            //перезаписываем изначальный ноль нажатой кнопкой
             if (win.textContent == '0' && !equation) {
                 win.textContent = '';
                 equation = '';
                 lastNum = '';
             }
 
+            // если последний символ уравнения является знаком, то очищаем окно и lastNum
             if (equation.slice(-1).match(/[+*%/-]/)) {
                 win.textContent = '';
+                lastNum = '';
             }
 
             if (e.target.value == '.') {
@@ -143,33 +162,26 @@ let calc = function() {
         });        
     });
 
-
-
-
     operators.forEach(oper => {
         oper.addEventListener('click', (e)=> {
             if (win.textContent != '0' && equation != '') {
                 x = 1;
 
             lastOperator = e.target.value;
-            showStats();
 
             if(equation.slice(-1).match(/[+*%/-]/)){
                 equation = equation.slice(0, -1);
                 // equation.replace(equation.slice(-1), e.target.value);
             }
             equation += e.target.value;
-            lastNum = '';
+            // lastNum = '';
             showStats();
             }
         });
     });
 
-
-
-
-
     res.addEventListener('click', ()=> {
+        equation = equation.replace(/--/g, "+");
         //SWITCH
         switch(x) {
             case 1: 
@@ -206,30 +218,8 @@ let calc = function() {
                 }
                 break;
         }
-
-        // if(!x) {
-        //     outcome = eval(equation);
-        //     win.textContent = outcome;
-        //     equation = '' + outcome;
-        //     x = true;
-        //     showStats();
-        // } else {
-        //     if (lastOperator && lastNum) {
-        //         outcome = eval(equation + lastOperator + lastNum);
-        //         equation = '' + outcome;
-        //         // ДОАВИТЬ УСЛОВИЕ ПО КОТОРОМУ ЕСЛИ ЧИСЛО ИМЕЕТ ДЕСЯТИЧНЫЕ СОКРАТИТЬ ЕГО
-        //         win.textContent = outcome;
-        //         showStats();
-        //     } else {
-        //         return;
-        //     }
-        // }
     });
 
-
-
-
-    // меняет AC/C when buttons are pressed
     numbers.forEach(num=> {
         num.addEventListener('click', ()=> {
             swap();
@@ -243,6 +233,6 @@ calc();
 
 
 
-// add plus/minus functionality
-// make sure when you press comma you have zero in front
-// change the font 
+// косяк с нулем
+// косяк с минусом / добавить возможность добавить минус последнему номеру после добавнления оператора
+// старый номер стирается про нажатии на конпку если предыдущий символ - оператор
